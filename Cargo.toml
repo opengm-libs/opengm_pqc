@@ -3,9 +3,44 @@ name = "opengm_pqc"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+crate-type = ["staticlib"]
+
 [dependencies]
-rand = {version = "0.8", features = ["alloc"]}
+rand = {version = "0.9.1", default-features = false}
+thiserror = {version = "2.0", default-features = false}
+
+[dev-dependencies]
+rand = {version = "0.9.1"}
+hex-literal = "1.0.0"
+
+[build-dependencies]
+libc_alloc = {version = "1.0", optional = true}
+cbindgen = { version = "0.28"}
 
 [features]
-default = []
-sm3 = []
+default = ["mlkem", "mldsa"]
+std = []
+mlkem = ["mlkem512", "mlkem768", "mlkem1024"]
+mlkem512 = []
+mlkem768 = []
+mlkem1024 = []
+mldsa = ["mldsa44", "mldsa65", "mldsa87"]
+mldsa44 = []
+mldsa65 = []
+mldsa87 = []
+
+build-lib = ["dep:libc_alloc"]
+
+[profile.dev]
+panic = "abort"
+
+
+[profile.release]
+opt-level = 2
+lto = true
+strip = "debuginfo"
+panic = "abort"
+
+[profile.test]
+# inherits = "release"
