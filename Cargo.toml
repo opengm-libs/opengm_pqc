@@ -1,0 +1,11 @@
+[package]
+name = "opengm_pqc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rand = {version = "0.8", features = ["alloc"]}
+
+[features]
+default = []
+sm3 = []
