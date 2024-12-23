@@ -3,9 +3,25 @@ name = "opengm_pqc"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+crate-type = ["staticlib"]
+# crate-type = ["dylib"]
+
 [dependencies]
-rand = {version = "0.8", features = ["alloc"]}
+rand = {version = "0.9.1", features = ["alloc"]}
+thiserror = {version = "2.0"}
+
+[dev-dependencies]
+hex-literal = "1.0.0"
+
+[build-dependencies]
+cbindgen = { version = "0.28" }
 
 [features]
-default = []
-sm3 = []
+default = ["mlkem"]
+mlkem = []
+
+[profile.release]
+opt-level = 2
+lto = true
+panic = "unwind"
