@@ -4,18 +4,11 @@ all: build-rust
 
 build: build-rust
 
+targets := aarch64-apple-darwin aarch64-unknown-linux-gnu x86_64-unknown-linux-gnu
 build-rust:
-	cargo build --release --target aarch64-apple-darwin
-	cp target/aarch64-apple-darwin/release/libopengm_pqc.a libs/libopengm_pqc_aarch64-apple-darwin.a
+	@for a in $(targets);do\
+		cargo build --release --target $$a;\
+		cp target/$$a/release/libopengm_pqc.a libs/libopengm_pqc_$$a.a;\
+	done
 
-	cargo build --release --target aarch64-unknown-linux-gnu
-	cp target/aarch64-unknown-linux-gnu/release/libopengm_pqc.a libs/libopengm_pqc_aarch64-unknown-linux-gnu.a
-	
-	cargo build --release --target aarch64-apple-darwin
-	cp target/aarch64-apple-darwin/release/libopengm_pqc.a libs/libopengm_pqc_aarch64-apple-darwin.a
 
-	cargo build --release --target x86_64-unknown-linux-gnu
-	cp target/x86_64-unknown-linux-gnu/release/libopengm_pqc.a libs/libopengm_pqc_x86_64-unknown-linux-gnu.a
-
-	# this pulls out ELF symbols, 80% size reduction!
-	# strip api/libgo_rust_demo.so

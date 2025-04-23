@@ -16,6 +16,32 @@ impl Default for Rq {
 }
 
 impl Rq {
+    
+    #[inline]
+    pub(crate) fn bytes(&self) -> [u8;512]{
+        let mut b = [0;512];
+        self.bytes_inplace(&mut b);    
+        b
+    }
+
+    #[inline]
+    pub(crate) fn bytes_inplace(&self, b: &mut [u8;256*2]){
+        b.copy_from_slice(unsafe { self.coeffs.align_to::<u8>().1 });
+    }
+
+    #[inline]
+    pub(crate) fn new_from_bytes(b: &[u8;256*2]) -> Self{
+        let mut f =Rq::default();
+        f.coeffs.copy_from_slice(unsafe { b.align_to::<i16>().1 });
+        f
+    }
+
+    #[inline]
+    pub(crate) fn from_bytes(&mut self, b: &[u8;256*2]) {
+        self.coeffs.copy_from_slice(unsafe { b.align_to::<i16>().1 });
+    }
+
+
     // polyByteEncode appends the encoding of f to b, use ByteEncode12, FIPS 203, Algorithm 5.
     //
     // Assume f reduced, i.e., coeffs of f in [0, q).

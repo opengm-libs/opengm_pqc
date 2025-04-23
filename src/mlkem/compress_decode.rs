@@ -136,13 +136,13 @@ pub(crate) fn decode_and_decompress_generic(f: &mut [i16; 256], b: &[u8], d: usi
     // read
     for chunk in b.chunks_exact(8) {
         let c = u64::from_le_bytes(chunk.try_into().unwrap());
-        buf_len += 64;
         let x = ((c << buf_len) | buf) & mask;
         f[fi] = decompress(x as u16, d);
         fi += 1;
 
         buf = c >> (d - buf_len);
-        buf_len = 64 - (d - buf_len);
+        
+        buf_len = buf_len + 64 - d;
         while buf_len >= d {
             f[fi] = decompress((buf & mask) as u16, d);
             fi += 1;

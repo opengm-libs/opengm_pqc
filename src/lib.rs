@@ -8,6 +8,17 @@
     generic_const_exprs
 )]
 
+#![no_std]
+#![warn(clippy::std_instead_of_alloc, clippy::std_instead_of_core)]
+
+#[allow(unused_imports)]
+#[macro_use]
+extern crate alloc;
+
+#[cfg(any(feature = "std", test))]
+#[macro_use]
+extern crate std;
+
 pub mod mlkem;
 pub mod sha3;
 pub mod tick;

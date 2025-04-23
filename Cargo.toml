@@ -5,7 +5,6 @@ edition = "2024"
 
 [lib]
 crate-type = ["staticlib"]
-# crate-type = ["dylib"]
 
 [dependencies]
 rand = {version = "0.9.1", features = ["alloc"]}
@@ -18,8 +17,10 @@ hex-literal = "1.0.0"
 cbindgen = { version = "0.28" }
 
 [features]
-default = ["mlkem"]
+default = []
+std = []
 mlkem = []
+
 
 [profile.release]
 opt-level = 2

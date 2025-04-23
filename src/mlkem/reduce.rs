@@ -3,7 +3,7 @@ mod mont_reduce;
 mod mont19_reduce;
 mod mont20_reduce;
 
-use std::ops::Shr;
+use core::ops::Shr;
 
 pub(crate) use mont_reduce::*;
 pub(crate) use barrett_reduce::*;

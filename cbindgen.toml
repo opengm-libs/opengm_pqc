@@ -24,7 +24,7 @@ cpp_compat = true
 
 ############################ Code Style Options ################################
 braces = "SameLine"
-line_length = 80
+line_length = 200
 tab_width = 4
 documentation_style = "auto"
 
