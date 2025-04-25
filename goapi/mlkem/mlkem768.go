@@ -1,6 +1,6 @@
 package mlkem
 
-// #include "opengm_pqc.h"
+// #include "../libs/opengm_pqc.h"
 import "C"
 
 import "crypto/rand"
