@@ -19,10 +19,11 @@ extern crate alloc;
 #[macro_use]
 extern crate std;
 
-pub mod mlkem;
 pub mod sha3;
 pub mod tick;
 
+pub mod mlkem;
+pub mod mldsa;
 
 
 

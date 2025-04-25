@@ -1,9 +1,13 @@
 package mlkem
 
-// #include "../libs/opengm_pqc.h"
+// #include "../../libs/opengm_pqc.h"
 import "C"
 
-import "crypto/rand"
+import (
+	"crypto/rand"
+
+	_ "github.com/opengm-libs/opengm_pqc/goapi"
+)
 
 const EncapKeySize768 = 1184
 const DecapKeySize768 = 2400
