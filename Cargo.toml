@@ -18,7 +18,7 @@ easybench = "1.1"
 cbindgen = { version = "0.28" }
 
 [features]
-default = ["std"]
+default = []
 std = []
 mlkem = []
 

@@ -17,18 +17,64 @@ extern "C" {
 #endif // __cplusplus
 
 /**
- * mlkem768_keygen_internal 密钥生成,dk必须指向(2 * k + k * k) * 512 + 96的缓冲区,k = 3
+ * mlkem768_keygen_internal 密钥生成,dk必须指向dk_len的缓冲区
  * d,z必须指向32字节, d,z由调用者使用随机数发生器生成.
  */
-void mlkem768_keygen_internal(uint8_t *dk, const uint8_t *d, const uint8_t *z);
+void *mlkem1024_keygen_internal(const uint8_t *d, const uint8_t *z);
 
-int32_t mlkem768_encap_internal(uint8_t *key, uint8_t *c, const uint8_t *ek, const uint8_t *m);
+void *mlkem1024_encapkey(void *dk_handle);
 
-int32_t mlkem768_decap(uint8_t *key, const uint8_t *c, const uint8_t *dk);
+int32_t mlkem1024_encap_internal(uint8_t *key, uint8_t *c, void *ek_handle, const uint8_t *m);
 
-void mlkem768_encapkey_encode(uint8_t *ek_encoded, const uint8_t *ek_unencoded);
+int32_t mlkem1024_decap(uint8_t *key, const uint8_t *c, void *dk_handle);
 
-void mlkem768_decapkey_encode(uint8_t *dk_encoded, const uint8_t *dk_unencoded);
+void mlkem1024_encapkey_encode(uint8_t *ek_encoded, void *ek_handle);
+
+void *mlkem1024_encapkey_decode(const uint8_t *ek_encoded);
+
+void mlkem1024_decapkey_encode(uint8_t *dk_encoded, void *dk_handle);
+
+void *mlkem1024_decapkey_decode(const uint8_t *dk_encoded);
+
+/**
+ * mlkem512_keygen_internal 密钥生成,dk必须指向dk_len的缓冲区
+ * d,z必须指向32字节, d,z由调用者使用随机数发生器生成.
+ */
+void *mlkem512_keygen_internal(const uint8_t *d, const uint8_t *z);
+
+void *mlkem512_encapkey(void *dk_handle);
+
+int32_t mlkem512_encap_internal(uint8_t *key, uint8_t *c, void *ek_handle, const uint8_t *m);
+
+int32_t mlkem512_decap(uint8_t *key, const uint8_t *c, void *dk_handle);
+
+void mlkem512_encapkey_encode(uint8_t *ek_encoded, void *ek_handle);
+
+void *mlkem512_encapkey_decode(const uint8_t *ek_encoded);
+
+void mlkem512_decapkey_encode(uint8_t *dk_encoded, void *dk_handle);
+
+void *mlkem512_decapkey_decode(const uint8_t *dk_encoded);
+
+/**
+ * mlkem768_keygen_internal 密钥生成,dk必须指向dk_len的缓冲区
+ * d,z必须指向32字节, d,z由调用者使用随机数发生器生成.
+ */
+void *mlkem768_keygen_internal(const uint8_t *d, const uint8_t *z);
+
+void *mlkem768_encapkey(void *dk_handle);
+
+int32_t mlkem768_encap_internal(uint8_t *key, uint8_t *c, void *ek_handle, const uint8_t *m);
+
+int32_t mlkem768_decap(uint8_t *key, const uint8_t *c, void *dk_handle);
+
+void mlkem768_encapkey_encode(uint8_t *ek_encoded, void *ek_handle);
+
+void *mlkem768_encapkey_decode(const uint8_t *ek_encoded);
+
+void mlkem768_decapkey_encode(uint8_t *dk_encoded, void *dk_handle);
+
+void *mlkem768_decapkey_decode(const uint8_t *dk_encoded);
 
 /**
  *  exports C api

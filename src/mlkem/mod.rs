@@ -9,8 +9,8 @@ mod reduce;
 mod rq;
 mod sample;
 
-// mod mlkem1024;
-// mod mlkem512;
+mod mlkem1024;
+mod mlkem512;
 mod mlkem768;
 
 pub(crate) const N: usize = 256;

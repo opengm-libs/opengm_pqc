@@ -1,4 +1,5 @@
-
+use core::ffi::c_void;
+use alloc::boxed::Box;
 use crate::mlkem::internal::{self, keygen_internal_};
 use rand::{CryptoRng, Rng};
 
@@ -12,8 +13,9 @@ pub(crate) const ek_len: usize = crate::ek_len!(k);
 pub(crate) const dk_len: usize = crate::dk_len!(k);
 pub(crate) const cipher_len: usize = crate::cipher_len!(k, du, dv);
 
-pub type EncapKey  = internal::EncapKey<k, eta1, eta2>;
-pub type DecapKey =internal::DecapKey<k, eta1, eta2>;
+
+pub type EncapKey = internal::EncapKey<k, eta1, eta2>;
+pub type DecapKey = internal::DecapKey<k, eta1, eta2>;
 
 pub fn keygen(rng: &mut dyn CryptoRng) -> DecapKey {
     let d = rng.random();
@@ -46,61 +48,98 @@ impl DecapKey {
     }
 }
 
-
 /////////////////////////////////////////////////////////////////////
 ///  exports C api
 /////////////////////////////////////////////////////////////////////
 
+const dk_bytes_len:usize =  (2 * k + k * k) * 512 + 96;
+const ek_bytes_len:usize = (k + k * k) * 512 + 64;
 
-
+/// mlkem768_keygen_internal 密钥生成,dk必须指向dk_len的缓冲区
+/// d,z必须指向32字节, d,z由调用者使用随机数发生器生成.
 #[unsafe(no_mangle)]
-pub extern "C" fn mlkem1024_keygen_internal(ek: *mut u8, dk: *mut u8, d: *const u8, z: *const u8) {
+pub extern "C" fn mlkem1024_keygen_internal(d: *const u8, z: *const u8) -> *mut c_void {
     let d = unsafe { core::slice::from_raw_parts(d, 32) }.try_into().unwrap();
     let z = unsafe { core::slice::from_raw_parts(z, 32) }.try_into().unwrap();
-    let ek = unsafe { core::slice::from_raw_parts_mut(ek, ek_len) }
-        .try_into()
-        .unwrap();
-    let dk = unsafe { core::slice::from_raw_parts_mut(dk, dk_len) }
-        .try_into()
-        .unwrap();
-
-    let decapkey = internal::keygen_internal_::<k, eta1, eta2>(d, z);
-    let encapkey = decapkey.encapsulation_key_ref();
-
-    decapkey.byte_encode_inplace(dk);
-    encapkey.byte_encode_inplace(ek);
+    
+    Box::leak(Box::new(internal::keygen_internal_::<k, eta1, eta2>(d, z))) as *mut _ as *mut c_void
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn mlkem1024_encap_internal(key: *mut u8, c: *mut u8, ek: *const u8, m: *const u8) -> i32 {
-    let ek = unsafe { core::slice::from_raw_parts(ek, ek_len) }.try_into().unwrap();
+pub extern "C" fn mlkem1024_encapkey(dk_handle: *mut c_void) -> *mut c_void {
+    let dk = unsafe { Box::from_raw(dk_handle as *mut DecapKey) };
+    
+    Box::leak(Box::new(dk.encapsulation_key())) as *mut _ as *mut c_void
+
+
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn mlkem1024_encap_internal(key: *mut u8, c: *mut u8, ek_handle: *mut c_void, m: *const u8) -> i32 {
+    let ek = unsafe { Box::from_raw(ek_handle as *mut EncapKey) };
+
     let m = unsafe { core::slice::from_raw_parts(m, 32) }.try_into().unwrap();
     let out_key = unsafe { core::slice::from_raw_parts_mut(key, 32) };
     let out_c = unsafe { core::slice::from_raw_parts_mut(c, cipher_len) };
 
-    match EncapKey::byte_decode(ek) {
-        Ok(ek) => {
-            let (key, c) = ek.encaps_internal(m);
-            out_key.copy_from_slice(&key);
-            out_c.copy_from_slice(&c);
-            0
-        }
-        Err(_) => -1,
-    }
+    let (key, c) = ek.encaps_internal(m);
+    out_key.copy_from_slice(&key);
+    out_c.copy_from_slice(&c);
+
+    Box::leak(ek);
+    0
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn mlkem1024_decap(key: *mut u8, c: *const u8, dk: *const u8) -> i32 {
-    let dk = unsafe { core::slice::from_raw_parts(dk, dk_len) };
+pub extern "C" fn mlkem1024_decap(key: *mut u8, c: *const u8, dk_handle: *mut c_void) -> i32 {
+    let dk = unsafe { Box::from_raw(dk_handle as *mut DecapKey) };
+
     let out_key = unsafe { core::slice::from_raw_parts_mut(key, 32) };
     let in_c = unsafe { core::slice::from_raw_parts(c, cipher_len) };
 
-    match DecapKey::byte_decode(dk.try_into().unwrap()) {
-        Ok(dk) => {
-            let key = dk.decaps(in_c.try_into().unwrap());
-            out_key.copy_from_slice(&key);
-            0
-        }
-        Err(_) => -1,
-    }
+    let key = dk.decaps(in_c.try_into().unwrap());
+    out_key.copy_from_slice(&key);
+
+    Box::leak(dk);
+    0
+}
+
+// byte_encode encapkey
+#[unsafe(no_mangle)]
+pub extern "C" fn mlkem1024_encapkey_encode(ek_encoded: *mut u8, ek_handle: *mut c_void) {
+    let ek_encoded = unsafe { core::slice::from_raw_parts_mut(ek_encoded, ek_len) }
+    .try_into()
+    .unwrap();
+    let ek = unsafe { Box::from_raw(ek_handle as *mut EncapKey) };
+    
+    ek.byte_encode_inplace(ek_encoded);
+    Box::leak(ek);
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn mlkem1024_encapkey_decode(ek_encoded: *const u8) -> *mut c_void {
+    let ek_encoded = unsafe { core::slice::from_raw_parts(ek_encoded, ek_len) }
+    .try_into()
+    .unwrap();
+    Box::leak(Box::new(EncapKey::byte_decode(ek_encoded))) as *mut _ as *mut c_void
+}
+
+// byte_encode decapkey
+#[unsafe(no_mangle)]
+pub extern "C" fn mlkem1024_decapkey_encode(dk_encoded: *mut u8, dk_handle: *mut c_void) {
+    let dk = unsafe { Box::from_raw(dk_handle as *mut DecapKey) };
+    let dk_encoded = unsafe { core::slice::from_raw_parts_mut(dk_encoded, dk_len) }
+    .try_into()
+    .unwrap();
+    
+    dk.byte_encode_inplace(dk_encoded);
+
+    Box::leak(dk);
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn mlkem1024_decapkey_decode(dk_encoded: *const u8) -> *mut c_void {
+    let dk_encoded = unsafe { core::slice::from_raw_parts(dk_encoded, dk_len) }
+    .try_into()
+    .unwrap();
+    Box::leak(Box::new(DecapKey::byte_decode(dk_encoded))) as *mut _ as *mut c_void
 }
