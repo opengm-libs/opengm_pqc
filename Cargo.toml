@@ -12,18 +12,22 @@ thiserror = {version = "2.0"}
 
 [dev-dependencies]
 hex-literal = "1.0.0"
+easybench = "1.1"
 
 [build-dependencies]
 cbindgen = { version = "0.28" }
 
 [features]
-default = []
+default = ["std"]
 std = []
 mlkem = []
 
 
 [profile.release]
-opt-level = 3
+opt-level = 2
 lto = true
 strip = "debuginfo"
 panic = "unwind"
+
+[profile.test]
+# inherits = "release"

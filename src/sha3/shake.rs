@@ -1,6 +1,7 @@
 use super::{sponge::Digest, Hash, XOF};
 
 
+#[derive(Clone)]
 pub struct SHAKE<const N:usize>{
     d: Digest::<N>
 }

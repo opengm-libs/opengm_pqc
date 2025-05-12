@@ -30,5 +30,5 @@ pub(crate) fn reduce_once(a: i16) -> i16 {
 // for a in (-Q, Q), reduce to [0, q).
 #[inline]
 pub(crate) fn reduce_to_positive(a: i16) -> i16 {
-    a + (a.shr(i16::BITS - 1) & Q)
+    a + ( (a >> (i16::BITS - 1)) & Q)
 }

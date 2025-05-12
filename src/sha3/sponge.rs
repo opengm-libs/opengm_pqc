@@ -43,8 +43,8 @@ impl<const DIGEST_SIZE: usize> Hash<DIGEST_SIZE> for Digest<DIGEST_SIZE> {
             for (d, s) in zip(&mut self.a[self.n..rate], &p[..rate - self.n]) {
                 *d ^= *s
             }
+            p = &p[rate - self.n..];
             self.permute();
-            p = &p[rate - self.n..]
         }
 
         for (d, s) in zip(&mut self.a[self.n..self.n + p.len()], p) {

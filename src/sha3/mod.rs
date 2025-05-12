@@ -1,5 +1,6 @@
-use sponge::Digest;
-use shake::SHAKE;
+pub use sponge::Digest;
+pub use shake::SHAKE;
+
 mod keccakf;
 mod sponge;
 mod shake;

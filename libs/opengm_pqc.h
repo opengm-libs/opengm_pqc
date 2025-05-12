@@ -30,6 +30,69 @@ void mlkem768_encapkey_encode(uint8_t *ek_encoded, const uint8_t *ek_unencoded);
 
 void mlkem768_decapkey_encode(uint8_t *dk_encoded, const uint8_t *dk_unencoded);
 
+/**
+ *  exports C api
+ */
+void *mldsa65_generate_key_internal(const uint8_t *xi);
+
+void *mldsa65_public_key(void *sk_handle);
+
+void mldsa65_key_encode(uint8_t *sk, uint8_t *pk, void *sk_handle);
+
+void *mldsa65_import_private_key(const uint8_t *sk);
+
+void *mldsa65_import_public_key(const uint8_t *pk);
+
+uint32_t mldsa65_sign_internal(uint8_t *sig, void *sk_handle, const uint8_t *m, uintptr_t mlen, const uint8_t *rnd);
+
+bool mldsa65_verify_internal(const uint8_t *sig, void *pk_handle, const uint8_t *m, uintptr_t mlen);
+
+void mldsa65_drop_private_key_handle(void *sk_handle);
+
+void mldsa65_drop_public_key_handle(void *pk_handle);
+
+/**
+ *  exports C api
+ */
+void *mldsa44_generate_key_internal(const uint8_t *xi);
+
+void *mldsa44_public_key(void *sk_handle);
+
+void mldsa44_key_encode(uint8_t *sk, uint8_t *pk, void *sk_handle);
+
+void *mldsa44_import_private_key(const uint8_t *sk);
+
+void *mldsa44_import_public_key(const uint8_t *pk);
+
+uint32_t mldsa44_sign_internal(uint8_t *sig, void *sk_handle, const uint8_t *m, uintptr_t mlen, const uint8_t *rnd);
+
+bool mldsa44_verify_internal(const uint8_t *sig, void *pk_handle, const uint8_t *m, uintptr_t mlen);
+
+void mldsa44_drop_private_key_handle(void *sk_handle);
+
+void mldsa44_drop_public_key_handle(void *pk_handle);
+
+/**
+ *  exports C api
+ */
+void *mldsa87_generate_key_internal(const uint8_t *xi);
+
+void *mldsa87_public_key(void *sk_handle);
+
+void mldsa87_key_encode(uint8_t *sk, uint8_t *pk, void *sk_handle);
+
+void *mldsa87_import_private_key(const uint8_t *sk);
+
+void *mldsa87_import_public_key(const uint8_t *pk);
+
+uint32_t mldsa87_sign_internal(uint8_t *sig, void *sk_handle, const uint8_t *m, uintptr_t mlen, const uint8_t *rnd);
+
+bool mldsa87_verify_internal(const uint8_t *sig, void *pk_handle, const uint8_t *m, uintptr_t mlen);
+
+void mldsa87_drop_private_key_handle(void *sk_handle);
+
+void mldsa87_drop_public_key_handle(void *pk_handle);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus
