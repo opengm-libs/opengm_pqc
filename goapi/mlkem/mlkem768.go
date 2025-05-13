@@ -5,6 +5,8 @@ import "C"
 
 import (
 	"crypto/rand"
+	"fmt"
+	"io"
 	"runtime"
 	"unsafe"
 
@@ -39,14 +41,37 @@ func newMlkem768EncapKey(p unsafe.Pointer) *Mlkem768EncapKey {
 	return ek
 }
 
-func Mlkem768KeyGen() *Mlkem768DecapKey {
+func NewMlkem768DecapKey(encodeKey []byte) (*Mlkem768DecapKey, error) {
+	if len(encodeKey) != DecapKeySize768 {
+		return nil, fmt.Errorf("encode decap key size wang %d, got %d", DecapKeySize768, len(encodeKey))
+	}
+	return newMlkem768DecapKey(C.mlkem768_decapkey_decode((*C.uint8_t)(unsafe.SliceData(encodeKey)))), nil
+}
+
+func NewMlkem768EncapKey(encodeKey []byte) (*Mlkem768EncapKey, error) {
+	if len(encodeKey) != EncapKeySize768 {
+		return nil, fmt.Errorf("encode decap key size wang %d, got %d", EncapKeySize768, len(encodeKey))
+	}
+	return newMlkem768EncapKey(C.mlkem768_encapkey_decode((*C.uint8_t)(unsafe.SliceData(encodeKey)))), nil
+}
+
+func Mlkem768KeyGenInternal(d, z []byte) (*Mlkem768DecapKey, error) {
+	if len(d) != 32 || len(z) != 32 {
+		return nil, fmt.Errorf("input d/z must have size 32")
+	}
+	return newMlkem768DecapKey(C.mlkem768_keygen_internal((*C.uint8_t)(unsafe.SliceData(d)), (*C.uint8_t)(unsafe.SliceData(z)))), nil
+}
+func Mlkem768KeyGen(rnd io.Reader) (*Mlkem768DecapKey, error) {
 	d := make([]byte, 32)
 	z := make([]byte, 32)
 
-	rand.Read(d)
-	rand.Read(z)
-
-	return newMlkem768DecapKey(C.mlkem768_keygen_internal((*C.uint8_t)(unsafe.SliceData(d)), (*C.uint8_t)(unsafe.SliceData(z))))
+	if _, err := rnd.Read(d); err != nil {
+		return nil, err
+	}
+	if _, err := rnd.Read(z); err != nil {
+		return nil, err
+	}
+	return Mlkem768KeyGenInternal(d, z)
 }
 
 func (dk *Mlkem768DecapKey) EncapKey() *Mlkem768EncapKey {
@@ -54,26 +79,29 @@ func (dk *Mlkem768DecapKey) EncapKey() *Mlkem768EncapKey {
 }
 
 func (dk *Mlkem768DecapKey) Encode() []byte {
-	b := make([]byte, DecapKeySize1024)
+	b := make([]byte, DecapKeySize768)
 	C.mlkem768_decapkey_encode((*C.uint8_t)(unsafe.SliceData(b)), dk.p)
 	return b
 }
 
-func (dk *Mlkem768DecapKey) Decap(c []byte) []byte {
+func (dk *Mlkem768DecapKey) Decap(c []byte) ([]byte, error) {
+	if len(c) != CipherSize768 {
+		return nil, fmt.Errorf("mlkem512 want cipher size %d, got %d", CipherSize512, len(c))
+	}
 	key := make([]byte, 32)
 	C.mlkem768_decap((*C.uint8_t)(unsafe.SliceData(key)), (*C.uint8_t)(unsafe.SliceData(c)), dk.p)
-	return key
+	return key, nil
 }
 
 func (ek *Mlkem768EncapKey) Encode() []byte {
-	b := make([]byte, EncapKeySize1024)
+	b := make([]byte, EncapKeySize768)
 	C.mlkem768_encapkey_encode((*C.uint8_t)(unsafe.SliceData(b)), ek.p)
 	return b
 }
 
 func (ek *Mlkem768EncapKey) Encap() ([]byte, []byte) {
 	key := make([]byte, 32)
-	c := make([]byte, CipherSize1024)
+	c := make([]byte, CipherSize768)
 	m := make([]byte, 32)
 	rand.Read(m)
 

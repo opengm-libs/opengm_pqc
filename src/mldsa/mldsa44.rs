@@ -105,26 +105,32 @@ pub extern "C" fn mldsa44_public_key(sk_handle:  *mut c_void) -> *mut c_void {
     public_key
 }
 
+
 #[unsafe(no_mangle)]
-pub extern "C" fn mldsa44_key_encode(sk: *mut u8, pk: *mut u8, sk_handle:  *mut c_void) {
+pub extern "C" fn mldsa44_private_key_encode(sk: *mut u8, sk_handle: *mut c_void) {
     // SAFTY: key_handle must be imported or generate key's returns.
     let private_key = unsafe { Box::from_raw(sk_handle as *mut PrivateKey) };
 
-    if !sk.is_null(){
-        let mut sk: [u8; sklen] = unsafe { core::slice::from_raw_parts_mut(sk, sklen) }
-            .try_into()
-            .unwrap();
-    
-        private_key.sk_encode_inplace(&mut sk);
-    }
-    if !pk.is_null(){
-        let mut pk = unsafe { core::slice::from_raw_parts_mut(pk, pklen) }
+    let mut sk: [u8; sklen] = unsafe { core::slice::from_raw_parts_mut(sk, sklen) }
         .try_into()
         .unwrap();
-        private_key.public_key_ref().pk_encode_inplace(&mut pk);
-    }
+
+    private_key.sk_encode_inplace(&mut sk);
 
     Box::leak(private_key);
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn mldsa44_public_key_encode(pk: *mut u8, pk_handle: *mut c_void) {
+    // SAFTY: key_handle must be imported or generate key's returns.
+    let public_key = unsafe { Box::from_raw(pk_handle as *mut PublicKey) };
+
+    let mut pk = unsafe { core::slice::from_raw_parts_mut(pk, pklen) }
+        .try_into()
+        .unwrap();
+    public_key.pk_encode_inplace(&mut pk);
+
+    Box::leak(public_key);
 }
 
 #[unsafe(no_mangle)]

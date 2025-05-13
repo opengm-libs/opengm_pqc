@@ -40,18 +40,23 @@ macro_rules! cipher_len {
 
 #[cfg(test)]
 mod tests {
-    // #[test]
-    // fn test_mlkem512() {
-    //     use super::mlkem512::*;
-    //     let mut rng = rand::rng();
-    //     let dk = keygen(&mut rng);
-    //     let ek = dk.encapsulation_key_ref();
-    //     let (key, c) = ek.encaps(&mut rng);
+    #[test]
+    fn test_mlkem512() {
+        use super::mlkem512::*;
+        let mut rng = rand::rng();
+        let dk = keygen(&mut rng);
+        let ek = dk.encapsulation_key_ref();
+        let (key, c) = ek.encaps(&mut rng);
 
-    //     let key2 = dk.decaps(&c);
+        let key2 = dk.decaps(&c);
 
-    //     assert_eq!(key, key2);
-    // }
+        assert_eq!(key, key2);
+
+        let b = dk.byte_encode();
+        let dk2 = DecapKey::byte_decode(&b).unwrap();
+        let b2 = dk2.byte_encode();
+        assert_eq!(b,b2);
+    }
 
     #[test]
     fn test_mlkem768() {

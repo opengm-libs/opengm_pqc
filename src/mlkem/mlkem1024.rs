@@ -120,7 +120,7 @@ pub extern "C" fn mlkem1024_encapkey_decode(ek_encoded: *const u8) -> *mut c_voi
     let ek_encoded = unsafe { core::slice::from_raw_parts(ek_encoded, ek_len) }
     .try_into()
     .unwrap();
-    Box::leak(Box::new(EncapKey::byte_decode(ek_encoded))) as *mut _ as *mut c_void
+    Box::leak(Box::new(EncapKey::byte_decode(ek_encoded).unwrap())) as *mut _ as *mut c_void
 }
 
 // byte_encode decapkey
@@ -141,7 +141,7 @@ pub extern "C" fn mlkem1024_decapkey_decode(dk_encoded: *const u8) -> *mut c_voi
     let dk_encoded = unsafe { core::slice::from_raw_parts(dk_encoded, dk_len) }
     .try_into()
     .unwrap();
-    Box::leak(Box::new(DecapKey::byte_decode(dk_encoded))) as *mut _ as *mut c_void
+    Box::leak(Box::new(DecapKey::byte_decode(dk_encoded).unwrap())) as *mut _ as *mut c_void
 }
 
 #[unsafe(no_mangle)]

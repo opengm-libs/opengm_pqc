@@ -51,8 +51,6 @@ impl DecapKey {
 ///  exports C api
 /////////////////////////////////////////////////////////////////////
 
-const dk_bytes_len: usize = (2 * k + k * k) * 512 + 96;
-const ek_bytes_len: usize = (k + k * k) * 512 + 64;
 
 /// mlkem512_keygen_internal 密钥生成,dk必须指向dk_len的缓冲区
 /// d,z必须指向32字节, d,z由调用者使用随机数发生器生成.
@@ -119,7 +117,7 @@ pub extern "C" fn mlkem512_encapkey_decode(ek_encoded: *const u8) -> *mut c_void
     let ek_encoded = unsafe { core::slice::from_raw_parts(ek_encoded, ek_len) }
         .try_into()
         .unwrap();
-    Box::leak(Box::new(EncapKey::byte_decode(ek_encoded))) as *mut _ as *mut c_void
+    Box::leak(Box::new(EncapKey::byte_decode(ek_encoded).unwrap())) as *mut _ as *mut c_void
 }
 
 // byte_encode decapkey
@@ -140,7 +138,7 @@ pub extern "C" fn mlkem512_decapkey_decode(dk_encoded: *const u8) -> *mut c_void
     let dk_encoded = unsafe { core::slice::from_raw_parts(dk_encoded, dk_len) }
         .try_into()
         .unwrap();
-    Box::leak(Box::new(DecapKey::byte_decode(dk_encoded))) as *mut _ as *mut c_void
+    Box::leak(Box::new(DecapKey::byte_decode(dk_encoded).unwrap())) as *mut _ as *mut c_void
 }
 
 #[unsafe(no_mangle)]

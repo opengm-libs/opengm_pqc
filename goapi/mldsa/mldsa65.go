@@ -77,13 +77,14 @@ func NewMldsa65PrivateKey(encodedSk []byte) (*Mldsa65PrivateKey, error) {
 	return newMldsa65PrivateKey(p), nil
 }
 
-func (sk Mldsa65PrivateKey) Sign(m []byte, rnd io.Reader) []byte {
+func (sk Mldsa65PrivateKey) Sign(m []byte, rnd io.Reader) ([]byte, error) {
 	r := make([]byte, 32)
+	if _, err := rnd.Read(r); err != nil {
+		return nil, err
+	}
 	sig := make([]byte, SignatureSize65)
-
 	C.mldsa65_sign_internal((*C.uint8_t)(unsafe.SliceData(sig)), sk.p, (*C.uint8_t)(unsafe.SliceData(m)), C.uintptr_t(len(m)), (*C.uint8_t)(unsafe.SliceData(r)))
-
-	return sig
+	return sig, nil
 }
 
 func (pk Mldsa65PublicKey) Verify(sig []byte, m []byte) bool {
@@ -95,4 +96,16 @@ func (pk Mldsa65PublicKey) Drop() {
 
 func (pk Mldsa65PrivateKey) Drop() {
 	C.mldsa65_drop_private_key_handle(pk.p)
+}
+
+func (sk Mldsa65PrivateKey) Encode() []byte {
+	b := make([]byte, PrivateKeySize65)
+	C.mldsa65_private_key_encode((*C.uint8_t)(unsafe.SliceData(b)), sk.p)
+	return b
+}
+
+func (pk Mldsa65PublicKey) Encode() []byte {
+	b := make([]byte, PublicKeySize65)
+	C.mldsa65_public_key_encode((*C.uint8_t)(unsafe.SliceData(b)), pk.p)
+	return b
 }

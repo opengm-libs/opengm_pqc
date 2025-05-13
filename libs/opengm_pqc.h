@@ -41,6 +41,7 @@ void mlkem1024_drop_encapkey_handle(void *ek_handle);
 void mlkem1024_drop_decapkey_handle(void *dk_handle);
 
 /**
+ *  exports C api
  * mlkem512_keygen_internal 密钥生成,dk必须指向dk_len的缓冲区
  * d,z必须指向32字节, d,z由调用者使用随机数发生器生成.
  */
@@ -95,7 +96,9 @@ void *mldsa65_generate_key_internal(const uint8_t *xi);
 
 void *mldsa65_public_key(void *sk_handle);
 
-void mldsa65_key_encode(uint8_t *sk, uint8_t *pk, void *sk_handle);
+void mldsa65_private_key_encode(uint8_t *sk, void *sk_handle);
+
+void mldsa65_public_key_encode(uint8_t *pk, void *pk_handle);
 
 void *mldsa65_import_private_key(const uint8_t *sk);
 
@@ -116,7 +119,9 @@ void *mldsa44_generate_key_internal(const uint8_t *xi);
 
 void *mldsa44_public_key(void *sk_handle);
 
-void mldsa44_key_encode(uint8_t *sk, uint8_t *pk, void *sk_handle);
+void mldsa44_private_key_encode(uint8_t *sk, void *sk_handle);
+
+void mldsa44_public_key_encode(uint8_t *pk, void *pk_handle);
 
 void *mldsa44_import_private_key(const uint8_t *sk);
 
@@ -137,7 +142,9 @@ void *mldsa87_generate_key_internal(const uint8_t *xi);
 
 void *mldsa87_public_key(void *sk_handle);
 
-void mldsa87_key_encode(uint8_t *sk, uint8_t *pk, void *sk_handle);
+void mldsa87_private_key_encode(uint8_t *sk, void *sk_handle);
+
+void mldsa87_public_key_encode(uint8_t *pk, void *pk_handle);
 
 void *mldsa87_import_private_key(const uint8_t *sk);
 

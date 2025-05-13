@@ -5,6 +5,8 @@ import "C"
 
 import (
 	"crypto/rand"
+	"fmt"
+	"io"
 	"runtime"
 	"unsafe"
 
@@ -39,14 +41,37 @@ func newMlkem512EncapKey(p unsafe.Pointer) *Mlkem512EncapKey {
 	return ek
 }
 
-func Mlkem512KeyGen() *Mlkem512DecapKey {
+func NewMlkem512DecapKey(encodeKey []byte) (*Mlkem512DecapKey, error) {
+	if len(encodeKey) != DecapKeySize512 {
+		return nil, fmt.Errorf("encode decap key size wang %d, got %d", DecapKeySize512, len(encodeKey))
+	}
+	return newMlkem512DecapKey(C.mlkem512_decapkey_decode((*C.uint8_t)(unsafe.SliceData(encodeKey)))), nil
+}
+
+func NewMlkem512EncapKey(encodeKey []byte) (*Mlkem512EncapKey, error) {
+	if len(encodeKey) != EncapKeySize512 {
+		return nil, fmt.Errorf("encode decap key size wang %d, got %d", EncapKeySize512, len(encodeKey))
+	}
+	return newMlkem512EncapKey(C.mlkem512_encapkey_decode((*C.uint8_t)(unsafe.SliceData(encodeKey)))), nil
+}
+
+func Mlkem512KeyGenInternal(d, z []byte) (*Mlkem512DecapKey, error) {
+	if len(d) != 32 || len(z) != 32 {
+		return nil, fmt.Errorf("input d/z must have size 32")
+	}
+	return newMlkem512DecapKey(C.mlkem512_keygen_internal((*C.uint8_t)(unsafe.SliceData(d)), (*C.uint8_t)(unsafe.SliceData(z)))), nil
+}
+func Mlkem512KeyGen(rnd io.Reader) (*Mlkem512DecapKey, error) {
 	d := make([]byte, 32)
 	z := make([]byte, 32)
 
-	rand.Read(d)
-	rand.Read(z)
-
-	return newMlkem512DecapKey(C.mlkem512_keygen_internal((*C.uint8_t)(unsafe.SliceData(d)), (*C.uint8_t)(unsafe.SliceData(z))))
+	if _, err := rnd.Read(d); err != nil {
+		return nil, err
+	}
+	if _, err := rnd.Read(z); err != nil {
+		return nil, err
+	}
+	return Mlkem512KeyGenInternal(d, z)
 }
 
 func (dk *Mlkem512DecapKey) EncapKey() *Mlkem512EncapKey {
@@ -54,26 +79,29 @@ func (dk *Mlkem512DecapKey) EncapKey() *Mlkem512EncapKey {
 }
 
 func (dk *Mlkem512DecapKey) Encode() []byte {
-	b := make([]byte, DecapKeySize1024)
+	b := make([]byte, DecapKeySize512)
 	C.mlkem512_decapkey_encode((*C.uint8_t)(&b[0]), dk.p)
 	return b
 }
 
-func (dk *Mlkem512DecapKey) Decap(c []byte) []byte {
+func (dk *Mlkem512DecapKey) Decap(c []byte) ([]byte, error) {
+	if len(c) != CipherSize512 {
+		return nil, fmt.Errorf("mlkem512 want cipher size %d, got %d", CipherSize512, len(c))
+	}
 	key := make([]byte, 32)
 	C.mlkem512_decap((*C.uint8_t)(&key[0]), (*C.uint8_t)(&c[0]), dk.p)
-	return key
+	return key, nil
 }
 
 func (ek *Mlkem512EncapKey) Encode() []byte {
-	b := make([]byte, EncapKeySize1024)
+	b := make([]byte, EncapKeySize512)
 	C.mlkem512_encapkey_encode((*C.uint8_t)(&b[0]), ek.p)
 	return b
 }
 
 func (ek *Mlkem512EncapKey) Encap() ([]byte, []byte) {
 	key := make([]byte, 32)
-	c := make([]byte, CipherSize1024)
+	c := make([]byte, CipherSize512)
 	m := make([]byte, 32)
 	rand.Read(m)
 

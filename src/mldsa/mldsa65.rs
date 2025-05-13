@@ -1,10 +1,7 @@
-use core::ffi::c_void;
 use alloc::boxed::Box;
+use core::ffi::c_void;
 
-use super::{
-    Q,
-    internal,
-};
+use super::{Q, internal};
 
 pub(crate) const d: usize = 13;
 pub(crate) const tau: usize = 49;
@@ -98,7 +95,7 @@ pub extern "C" fn mldsa65_generate_key_internal(xi: *const u8) -> *mut c_void {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn mldsa65_public_key(sk_handle:  *mut c_void) -> *mut c_void {
+pub extern "C" fn mldsa65_public_key(sk_handle: *mut c_void) -> *mut c_void {
     let private_key = unsafe { Box::from_raw(sk_handle as *mut PrivateKey) };
     let public_key = Box::leak(Box::new(private_key.public_key())) as *mut _ as *mut c_void;
     Box::leak(private_key);
@@ -106,25 +103,30 @@ pub extern "C" fn mldsa65_public_key(sk_handle:  *mut c_void) -> *mut c_void {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn mldsa65_key_encode(sk: *mut u8, pk: *mut u8, sk_handle:  *mut c_void) {
+pub extern "C" fn mldsa65_private_key_encode(sk: *mut u8, sk_handle: *mut c_void) {
     // SAFTY: key_handle must be imported or generate key's returns.
     let private_key = unsafe { Box::from_raw(sk_handle as *mut PrivateKey) };
 
-    if !sk.is_null(){
-        let mut sk: [u8; sklen] = unsafe { core::slice::from_raw_parts_mut(sk, sklen) }
-            .try_into()
-            .unwrap();
-    
-        private_key.sk_encode_inplace(&mut sk);
-    }
-    if !pk.is_null(){
-        let mut pk = unsafe { core::slice::from_raw_parts_mut(pk, pklen) }
+    let mut sk: [u8; sklen] = unsafe { core::slice::from_raw_parts_mut(sk, sklen) }
         .try_into()
         .unwrap();
-        private_key.public_key_ref().pk_encode_inplace(&mut pk);
-    }
+
+    private_key.sk_encode_inplace(&mut sk);
 
     Box::leak(private_key);
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn mldsa65_public_key_encode(pk: *mut u8, pk_handle: *mut c_void) {
+    // SAFTY: key_handle must be imported or generate key's returns.
+    let public_key = unsafe { Box::from_raw(pk_handle as *mut PublicKey) };
+
+    let mut pk = unsafe { core::slice::from_raw_parts_mut(pk, pklen) }
+        .try_into()
+        .unwrap();
+    public_key.pk_encode_inplace(&mut pk);
+
+    Box::leak(public_key);
 }
 
 #[unsafe(no_mangle)]
@@ -163,12 +165,12 @@ pub extern "C" fn mldsa65_sign_internal(
 
 #[unsafe(no_mangle)]
 pub extern "C" fn mldsa65_verify_internal(sig: *const u8, pk_handle: *mut c_void, m: *const u8, mlen: usize) -> bool {
-     let m = unsafe { core::slice::from_raw_parts(m, mlen)}.try_into().unwrap();
+    let m = unsafe { core::slice::from_raw_parts(m, mlen) }.try_into().unwrap();
     let pk = unsafe { Box::from_raw(pk_handle as *mut PublicKey) };
     let sig = unsafe { core::slice::from_raw_parts(sig, siglen) }.try_into().unwrap();
 
     let sig = Signature::sig_decode(sig);
-    if sig.is_none(){
+    if sig.is_none() {
         return false;
     }
     let ok = pk.verify_internal(m, sig.as_ref().unwrap());
