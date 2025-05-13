@@ -7,7 +7,7 @@ import (
 
 func TestMldsa44(t *testing.T) {
 	for i := 0; i < 1000; i++ {
-		sk := Mldsa44KeyGen()
+		sk, _ := Mldsa44KeyGen(rand.Reader)
 		pk := sk.PublicKey()
 		m := make([]byte, 32)
 		rand.Reader.Read(m)
@@ -22,7 +22,7 @@ func TestMldsa44(t *testing.T) {
 
 func TestMldsa65(t *testing.T) {
 	for i := 0; i < 1000; i++ {
-		sk := Mldsa65KeyGen()
+		sk, _ := Mldsa65KeyGen(rand.Reader)
 		pk := sk.PublicKey()
 		m := make([]byte, 32)
 		rand.Reader.Read(m)
@@ -37,7 +37,7 @@ func TestMldsa65(t *testing.T) {
 
 func TestMldsa87(t *testing.T) {
 	for i := 0; i < 1000; i++ {
-		sk := Mldsa87KeyGen()
+		sk, _ := Mldsa87KeyGen(rand.Reader)
 		pk := sk.PublicKey()
 		m := make([]byte, 32)
 		rand.Reader.Read(m)
@@ -51,7 +51,7 @@ func TestMldsa87(t *testing.T) {
 }
 
 func BenchmarkMldsaSign44(b *testing.B) {
-	sk := Mldsa44KeyGen()
+	sk, _ := Mldsa44KeyGen(rand.Reader)
 	m := make([]byte, 32)
 	rand.Reader.Read(m)
 
@@ -62,7 +62,7 @@ func BenchmarkMldsaSign44(b *testing.B) {
 }
 
 func BenchmarkMldsaSign65(b *testing.B) {
-	sk := Mldsa65KeyGen()
+	sk, _ := Mldsa65KeyGen(rand.Reader)
 	m := make([]byte, 32)
 	rand.Reader.Read(m)
 
@@ -73,7 +73,7 @@ func BenchmarkMldsaSign65(b *testing.B) {
 }
 
 func BenchmarkMldsaSign87(b *testing.B) {
-	sk := Mldsa87KeyGen()
+	sk, _ := Mldsa87KeyGen(rand.Reader)
 	m := make([]byte, 32)
 	rand.Reader.Read(m)
 
@@ -84,7 +84,7 @@ func BenchmarkMldsaSign87(b *testing.B) {
 }
 
 func BenchmarkMldsaVerify44(b *testing.B) {
-	sk := Mldsa44KeyGen()
+	sk, _ := Mldsa44KeyGen(rand.Reader)
 	pk := sk.PublicKey()
 	m := make([]byte, 32)
 	rand.Reader.Read(m)
@@ -98,7 +98,7 @@ func BenchmarkMldsaVerify44(b *testing.B) {
 }
 
 func BenchmarkMldsaVerify65(b *testing.B) {
-	sk := Mldsa65KeyGen()
+	sk, _ := Mldsa65KeyGen(rand.Reader)
 	pk := sk.PublicKey()
 	m := make([]byte, 32)
 	rand.Reader.Read(m)
@@ -112,7 +112,7 @@ func BenchmarkMldsaVerify65(b *testing.B) {
 }
 
 func BenchmarkMldsaVerify87(b *testing.B) {
-	sk := Mldsa87KeyGen()
+	sk, _ := Mldsa87KeyGen(rand.Reader)
 	pk := sk.PublicKey()
 	m := make([]byte, 32)
 	rand.Reader.Read(m)

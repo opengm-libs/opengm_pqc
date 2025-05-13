@@ -4,8 +4,6 @@ package mldsa
 import "C"
 
 import (
-	"crypto/rand"
-	"errors"
 	"fmt"
 	"io"
 	"runtime"
@@ -42,11 +40,21 @@ func newMldsa44PublicKey(p unsafe.Pointer) *Mldsa44PublicKey {
 	return pk
 }
 
-func Mldsa44KeyGen() *Mldsa44PrivateKey {
+func Mldsa44KeyGen(rnd io.Reader) (*Mldsa44PrivateKey, error) {
 	xi := make([]byte, 32)
-	rand.Read(xi)
+	if _, err := rnd.Read(xi); err != nil {
+		return nil, err
+	}
+	return Mldsa44KeyGenInternal(xi)
+}
+
+// Mldsa44KeyGenInternal generate key internal.
+func Mldsa44KeyGenInternal(xi []byte) (*Mldsa44PrivateKey, error) {
+	if len(xi) != 32 {
+		return nil, fmt.Errorf("seed length want 32, got %d", len(xi))
+	}
 	p := C.mldsa44_generate_key_internal((*C.uint8_t)(unsafe.SliceData(xi)))
-	return newMldsa44PrivateKey(p)
+	return newMldsa44PrivateKey(p), nil
 }
 
 func (sk Mldsa44PrivateKey) PublicKey() *Mldsa44PublicKey {
@@ -55,7 +63,7 @@ func (sk Mldsa44PrivateKey) PublicKey() *Mldsa44PublicKey {
 
 func NewMldsa44PublicKey(encodedPk []byte) (*Mldsa44PublicKey, error) {
 	if len(encodedPk) != PublicKeySize44 {
-		return nil, errors.New(fmt.Sprintf("MLDSA44 has public key size %d, but got %d", PublicKeySize44, len(encodedPk)))
+		return nil, fmt.Errorf("MLDSA44 has public key size %d, but got %d", PublicKeySize44, len(encodedPk))
 	}
 	p := C.mldsa44_import_public_key((*C.uint8_t)(unsafe.SliceData(encodedPk)))
 	return newMldsa44PublicKey(p), nil
@@ -63,7 +71,7 @@ func NewMldsa44PublicKey(encodedPk []byte) (*Mldsa44PublicKey, error) {
 
 func NewMldsa44PrivateKey(encodedSk []byte) (*Mldsa44PrivateKey, error) {
 	if len(encodedSk) != PrivateKeySize44 {
-		return nil, errors.New(fmt.Sprintf("MLDSA44 has private key size %d, but got %d", PrivateKeySize44, len(encodedSk)))
+		return nil, fmt.Errorf("MLDSA44 has private key size %d, but got %d", PrivateKeySize44, len(encodedSk))
 	}
 	p := C.mldsa44_import_private_key((*C.uint8_t)(unsafe.SliceData(encodedSk)))
 	return newMldsa44PrivateKey(p), nil

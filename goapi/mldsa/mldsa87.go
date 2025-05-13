@@ -4,8 +4,6 @@ package mldsa
 import "C"
 
 import (
-	"crypto/rand"
-	"errors"
 	"fmt"
 	"io"
 	"runtime"
@@ -42,11 +40,21 @@ func newMldsa87PublicKey(p unsafe.Pointer) *Mldsa87PublicKey {
 	return pk
 }
 
-func Mldsa87KeyGen() *Mldsa87PrivateKey {
+func Mldsa87KeyGen(rnd io.Reader) (*Mldsa87PrivateKey, error) {
 	xi := make([]byte, 32)
-	rand.Read(xi)
+	if _, err := rnd.Read(xi); err != nil {
+		return nil, err
+	}
+	return Mldsa87KeyGenInternal(xi)
+}
+
+// Mldsa87KeyGenInternal generate key internal.
+func Mldsa87KeyGenInternal(xi []byte) (*Mldsa87PrivateKey, error) {
+	if len(xi) != 32 {
+		return nil, fmt.Errorf("seed length want 32, got %d", len(xi))
+	}
 	p := C.mldsa87_generate_key_internal((*C.uint8_t)(unsafe.SliceData(xi)))
-	return newMldsa87PrivateKey(p)
+	return newMldsa87PrivateKey(p), nil
 }
 
 func (sk Mldsa87PrivateKey) PublicKey() *Mldsa87PublicKey {
@@ -55,7 +63,7 @@ func (sk Mldsa87PrivateKey) PublicKey() *Mldsa87PublicKey {
 
 func NewMldsa87PublicKey(encodedPk []byte) (*Mldsa87PublicKey, error) {
 	if len(encodedPk) != PublicKeySize87 {
-		return nil, errors.New(fmt.Sprintf("MLDSA87 has public key size %d, but got %d", PublicKeySize87, len(encodedPk)))
+		return nil, fmt.Errorf("MLDSA87 has public key size %d, but got %d", PublicKeySize87, len(encodedPk))
 	}
 	p := C.mldsa87_import_public_key((*C.uint8_t)(unsafe.SliceData(encodedPk)))
 	return newMldsa87PublicKey(p), nil
@@ -63,7 +71,7 @@ func NewMldsa87PublicKey(encodedPk []byte) (*Mldsa87PublicKey, error) {
 
 func NewMldsa87PrivateKey(encodedSk []byte) (*Mldsa87PrivateKey, error) {
 	if len(encodedSk) != PrivateKeySize87 {
-		return nil, errors.New(fmt.Sprintf("MLDSA87 has private key size %d, but got %d", PrivateKeySize87, len(encodedSk)))
+		return nil, fmt.Errorf("MLDSA87 has private key size %d, but got %d", PrivateKeySize87, len(encodedSk))
 	}
 	p := C.mldsa87_import_private_key((*C.uint8_t)(unsafe.SliceData(encodedSk)))
 	return newMldsa87PrivateKey(p), nil
@@ -81,7 +89,6 @@ func (sk Mldsa87PrivateKey) Sign(m []byte, rnd io.Reader) []byte {
 func (pk Mldsa87PublicKey) Verify(sig []byte, m []byte) bool {
 	return bool(C.mldsa87_verify_internal((*C.uint8_t)(unsafe.SliceData(sig)), pk.p, (*C.uint8_t)(unsafe.SliceData(m)), C.uintptr_t(len(m))))
 }
-
 func (pk Mldsa87PublicKey) Drop() {
 	C.mldsa87_drop_public_key_handle(pk.p)
 }
