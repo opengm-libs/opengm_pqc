@@ -36,6 +36,10 @@ void mlkem1024_decapkey_encode(uint8_t *dk_encoded, void *dk_handle);
 
 void *mlkem1024_decapkey_decode(const uint8_t *dk_encoded);
 
+void mlkem1024_drop_encapkey_handle(void *ek_handle);
+
+void mlkem1024_drop_decapkey_handle(void *dk_handle);
+
 /**
  * mlkem512_keygen_internal 密钥生成,dk必须指向dk_len的缓冲区
  * d,z必须指向32字节, d,z由调用者使用随机数发生器生成.
@@ -56,6 +60,10 @@ void mlkem512_decapkey_encode(uint8_t *dk_encoded, void *dk_handle);
 
 void *mlkem512_decapkey_decode(const uint8_t *dk_encoded);
 
+void mlkem512_drop_encapkey_handle(void *ek_handle);
+
+void mlkem512_drop_decapkey_handle(void *dk_handle);
+
 /**
  * mlkem768_keygen_internal 密钥生成,dk必须指向dk_len的缓冲区
  * d,z必须指向32字节, d,z由调用者使用随机数发生器生成.
@@ -75,6 +83,10 @@ void *mlkem768_encapkey_decode(const uint8_t *ek_encoded);
 void mlkem768_decapkey_encode(uint8_t *dk_encoded, void *dk_handle);
 
 void *mlkem768_decapkey_decode(const uint8_t *dk_encoded);
+
+void mlkem768_drop_encapkey_handle(void *ek_handle);
+
+void mlkem768_drop_decapkey_handle(void *dk_handle);
 
 /**
  *  exports C api

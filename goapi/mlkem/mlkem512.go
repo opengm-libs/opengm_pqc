@@ -5,6 +5,7 @@ import "C"
 
 import (
 	"crypto/rand"
+	"runtime"
 	"unsafe"
 
 	_ "github.com/opengm-libs/opengm_pqc/goapi"
@@ -22,6 +23,22 @@ type Mlkem512EncapKey struct {
 	p unsafe.Pointer
 }
 
+func newMlkem512DecapKey(p unsafe.Pointer) *Mlkem512DecapKey {
+	dk := &Mlkem512DecapKey{p}
+	runtime.SetFinalizer(dk, func(dk *Mlkem512DecapKey) {
+		dk.Drop()
+	})
+	return dk
+}
+
+func newMlkem512EncapKey(p unsafe.Pointer) *Mlkem512EncapKey {
+	ek := &Mlkem512EncapKey{p}
+	runtime.SetFinalizer(ek, func(ek *Mlkem512EncapKey) {
+		ek.Drop()
+	})
+	return ek
+}
+
 func Mlkem512KeyGen() *Mlkem512DecapKey {
 	d := make([]byte, 32)
 	z := make([]byte, 32)
@@ -29,15 +46,11 @@ func Mlkem512KeyGen() *Mlkem512DecapKey {
 	rand.Read(d)
 	rand.Read(z)
 
-	return &Mlkem512DecapKey{
-		p: C.mlkem512_keygen_internal((*C.uint8_t)(unsafe.SliceData(d)), (*C.uint8_t)(unsafe.SliceData(z))),
-	}
+	return newMlkem512DecapKey(C.mlkem512_keygen_internal((*C.uint8_t)(unsafe.SliceData(d)), (*C.uint8_t)(unsafe.SliceData(z))))
 }
 
 func (dk *Mlkem512DecapKey) EncapKey() *Mlkem512EncapKey {
-	return &Mlkem512EncapKey{
-		p: C.mlkem512_encapkey(dk.p),
-	}
+	return newMlkem512EncapKey(C.mlkem512_encapkey(dk.p))
 }
 
 func (dk *Mlkem512DecapKey) Encode() []byte {
@@ -66,4 +79,11 @@ func (ek *Mlkem512EncapKey) Encap() ([]byte, []byte) {
 
 	C.mlkem512_encap_internal((*C.uint8_t)(&key[0]), (*C.uint8_t)(&c[0]), ek.p, (*C.uint8_t)(&m[0]))
 	return key, c
+}
+func (dk *Mlkem512DecapKey) Drop() {
+	C.mlkem512_drop_decapkey_handle(dk.p)
+}
+
+func (ek *Mlkem512EncapKey) Drop() {
+	C.mlkem512_drop_encapkey_handle(ek.p)
 }

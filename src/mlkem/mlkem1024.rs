@@ -69,9 +69,9 @@ pub extern "C" fn mlkem1024_keygen_internal(d: *const u8, z: *const u8) -> *mut 
 pub extern "C" fn mlkem1024_encapkey(dk_handle: *mut c_void) -> *mut c_void {
     let dk = unsafe { Box::from_raw(dk_handle as *mut DecapKey) };
     
-    Box::leak(Box::new(dk.encapsulation_key())) as *mut _ as *mut c_void
-
-
+    let ek = Box::leak(Box::new(dk.encapsulation_key())) as *mut _ as *mut c_void;
+    Box::leak(dk);
+    ek
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn mlkem1024_encap_internal(key: *mut u8, c: *mut u8, ek_handle: *mut c_void, m: *const u8) -> i32 {
@@ -142,4 +142,14 @@ pub extern "C" fn mlkem1024_decapkey_decode(dk_encoded: *const u8) -> *mut c_voi
     .try_into()
     .unwrap();
     Box::leak(Box::new(DecapKey::byte_decode(dk_encoded))) as *mut _ as *mut c_void
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn  mlkem1024_drop_encapkey_handle(ek_handle: *mut c_void) {
+    drop(unsafe { Box::from_raw(ek_handle as *mut EncapKey) });
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn mlkem1024_drop_decapkey_handle(dk_handle: *mut c_void) {
+    drop(unsafe { Box::from_raw(dk_handle as *mut DecapKey) });
 }

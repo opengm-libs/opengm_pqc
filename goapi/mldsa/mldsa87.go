@@ -18,42 +18,42 @@ const PublicKeySize87 = 2592
 const PrivateKeySize87 = 4896
 const SignatureSize87 = 4627
 
-type mldsa87PrivateKey struct {
+type Mldsa87PrivateKey struct {
 	p unsafe.Pointer
 }
 
-type mldsa87PublicKey struct {
+type Mldsa87PublicKey struct {
 	p unsafe.Pointer
 }
 
-func newMldsa87PrivateKey(p unsafe.Pointer) *mldsa87PrivateKey {
-	sk := &mldsa87PrivateKey{p}
-	runtime.SetFinalizer(sk, func(sk *mldsa87PrivateKey) {
-		C.mldsa87_drop_private_key_handle(sk.p)
+func newMldsa87PrivateKey(p unsafe.Pointer) *Mldsa87PrivateKey {
+	sk := &Mldsa87PrivateKey{p}
+	runtime.SetFinalizer(sk, func(sk *Mldsa87PrivateKey) {
+		sk.Drop()
 	})
 	return sk
 }
 
-func newMldsa87PublicKey(p unsafe.Pointer) *mldsa87PublicKey {
-	pk := &mldsa87PublicKey{p}
-	runtime.SetFinalizer(pk, func(pk *mldsa87PublicKey) {
-		C.mldsa87_drop_public_key_handle(pk.p)
+func newMldsa87PublicKey(p unsafe.Pointer) *Mldsa87PublicKey {
+	pk := &Mldsa87PublicKey{p}
+	runtime.SetFinalizer(pk, func(pk *Mldsa87PublicKey) {
+		pk.Drop()
 	})
 	return pk
 }
 
-func Mldsa87KeyGen() *mldsa87PrivateKey {
+func Mldsa87KeyGen() *Mldsa87PrivateKey {
 	xi := make([]byte, 32)
 	rand.Read(xi)
 	p := C.mldsa87_generate_key_internal((*C.uint8_t)(unsafe.SliceData(xi)))
 	return newMldsa87PrivateKey(p)
 }
 
-func (sk mldsa87PrivateKey) PublicKey() *mldsa87PublicKey {
+func (sk Mldsa87PrivateKey) PublicKey() *Mldsa87PublicKey {
 	return newMldsa87PublicKey(C.mldsa87_public_key(sk.p))
 }
 
-func NewMldsa87PublicKey(encodedPk []byte) (*mldsa87PublicKey, error) {
+func NewMldsa87PublicKey(encodedPk []byte) (*Mldsa87PublicKey, error) {
 	if len(encodedPk) != PublicKeySize87 {
 		return nil, errors.New(fmt.Sprintf("MLDSA87 has public key size %d, but got %d", PublicKeySize87, len(encodedPk)))
 	}
@@ -61,7 +61,7 @@ func NewMldsa87PublicKey(encodedPk []byte) (*mldsa87PublicKey, error) {
 	return newMldsa87PublicKey(p), nil
 }
 
-func NewMldsa87PrivateKey(encodedSk []byte) (*mldsa87PrivateKey, error) {
+func NewMldsa87PrivateKey(encodedSk []byte) (*Mldsa87PrivateKey, error) {
 	if len(encodedSk) != PrivateKeySize87 {
 		return nil, errors.New(fmt.Sprintf("MLDSA87 has private key size %d, but got %d", PrivateKeySize87, len(encodedSk)))
 	}
@@ -69,7 +69,7 @@ func NewMldsa87PrivateKey(encodedSk []byte) (*mldsa87PrivateKey, error) {
 	return newMldsa87PrivateKey(p), nil
 }
 
-func (sk mldsa87PrivateKey) Sign(m []byte, rnd io.Reader) []byte {
+func (sk Mldsa87PrivateKey) Sign(m []byte, rnd io.Reader) []byte {
 	r := make([]byte, 32)
 	sig := make([]byte, SignatureSize87)
 
@@ -78,6 +78,14 @@ func (sk mldsa87PrivateKey) Sign(m []byte, rnd io.Reader) []byte {
 	return sig
 }
 
-func (pk mldsa87PublicKey) Verify(sig []byte, m []byte) bool {
+func (pk Mldsa87PublicKey) Verify(sig []byte, m []byte) bool {
 	return bool(C.mldsa87_verify_internal((*C.uint8_t)(unsafe.SliceData(sig)), pk.p, (*C.uint8_t)(unsafe.SliceData(m)), C.uintptr_t(len(m))))
+}
+
+func (pk Mldsa87PublicKey) Drop() {
+	C.mldsa87_drop_public_key_handle(pk.p)
+}
+
+func (pk Mldsa87PrivateKey) Drop() {
+	C.mldsa87_drop_private_key_handle(pk.p)
 }

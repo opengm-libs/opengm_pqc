@@ -1,6 +1,7 @@
 package mlkem_test
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/opengm-libs/opengm_pqc/goapi/mlkem"
@@ -9,16 +10,24 @@ import (
 func TestMlkem1024(t *testing.T) {
 	dk := mlkem.Mlkem1024KeyGen()
 	ek := dk.EncapKey()
-	key, c := ek.Encap()
-	key2 := dk.Decap(c)
-	for i := 0; i < 32; i++ {
-		if key[i] != key2[i] {
-			t.Fail()
-		}
-	}
-	_ = dk.Encode()
-	_ = ek.Encode()
+	var wg sync.WaitGroup
 
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			for i := 0; i < 10000; i++ {
+				key, c := ek.Encap()
+				key2 := dk.Decap(c)
+				for i := 0; i < 32; i++ {
+					if key[i] != key2[i] {
+						t.Fail()
+					}
+				}
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
 }
 
 func BenchmarkMlkem1024KeyGen(b *testing.B) {

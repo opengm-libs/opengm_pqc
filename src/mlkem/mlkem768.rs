@@ -69,7 +69,9 @@ pub extern "C" fn mlkem768_keygen_internal(d: *const u8, z: *const u8) -> *mut c
 pub extern "C" fn mlkem768_encapkey(dk_handle: *mut c_void) -> *mut c_void {
     let dk = unsafe { Box::from_raw(dk_handle as *mut DecapKey) };
     
-    Box::leak(Box::new(dk.encapsulation_key())) as *mut _ as *mut c_void
+    let ek = Box::leak(Box::new(dk.encapsulation_key())) as *mut _ as *mut c_void;
+    Box::leak(dk);
+    ek
 
 
 }
@@ -142,4 +144,14 @@ pub extern "C" fn mlkem768_decapkey_decode(dk_encoded: *const u8) -> *mut c_void
     .try_into()
     .unwrap();
     Box::leak(Box::new(DecapKey::byte_decode(dk_encoded))) as *mut _ as *mut c_void
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn  mlkem768_drop_encapkey_handle(ek_handle: *mut c_void) {
+    drop(unsafe { Box::from_raw(ek_handle as *mut EncapKey) });
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn mlkem768_drop_decapkey_handle(dk_handle: *mut c_void) {
+    drop(unsafe { Box::from_raw(dk_handle as *mut DecapKey) });
 }
