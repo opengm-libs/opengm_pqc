@@ -18,9 +18,16 @@ easybench = "1.1"
 cbindgen = { version = "0.28" }
 
 [features]
-default = []
+default = ["mlkem", "mldsa"]
 std = []
-mlkem = []
+mlkem = ["mlkem512", "mlkem768", "mlkem1024"]
+mlkem512 = []
+mlkem768 = []
+mlkem1024 = []
+mldsa = ["mldsa44", "mldsa65", "mldsa87"]
+mldsa44 = []
+mldsa65 = []
+mldsa87 = []
 
 
 [profile.release]

@@ -11,7 +11,7 @@ func TestMldsa44(t *testing.T) {
 		pk := sk.PublicKey()
 		m := make([]byte, 32)
 		rand.Reader.Read(m)
-		sig := sk.Sign(m, rand.Reader)
+		sig, _ := sk.Sign(m, rand.Reader)
 
 		ok := pk.Verify(sig, m)
 		if !ok {
@@ -41,7 +41,7 @@ func TestMldsa87(t *testing.T) {
 		pk := sk.PublicKey()
 		m := make([]byte, 32)
 		rand.Reader.Read(m)
-		sig := sk.Sign(m, rand.Reader)
+		sig, _ := sk.Sign(m, rand.Reader)
 
 		ok := pk.Verify(sig, m)
 		if !ok {
@@ -57,7 +57,7 @@ func BenchmarkMldsaSign44(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = sk.Sign(m, rand.Reader)
+		_, _ = sk.Sign(m, rand.Reader)
 	}
 }
 
@@ -79,7 +79,7 @@ func BenchmarkMldsaSign87(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = sk.Sign(m, rand.Reader)
+		_, _ = sk.Sign(m, rand.Reader)
 	}
 }
 
@@ -88,7 +88,7 @@ func BenchmarkMldsaVerify44(b *testing.B) {
 	pk := sk.PublicKey()
 	m := make([]byte, 32)
 	rand.Reader.Read(m)
-	sig := sk.Sign(m, rand.Reader)
+	sig, _ := sk.Sign(m, rand.Reader)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -116,7 +116,7 @@ func BenchmarkMldsaVerify87(b *testing.B) {
 	pk := sk.PublicKey()
 	m := make([]byte, 32)
 	rand.Reader.Read(m)
-	sig := sk.Sign(m, rand.Reader)
+	sig, _ := sk.Sign(m, rand.Reader)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
