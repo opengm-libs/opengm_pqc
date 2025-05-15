@@ -1,6 +1,7 @@
 use crate::mlkem::internal::{self, keygen_internal_};
 use alloc::boxed::Box;
 use core::ffi::c_void;
+
 use rand::{CryptoRng, Rng};
 
 pub(crate) const k: usize = 2;
@@ -23,6 +24,7 @@ pub fn keygen(rng: &mut dyn CryptoRng) -> DecapKey {
 }
 
 impl EncapKey {
+    
     pub fn encaps(&self, rng: &mut dyn CryptoRng) -> ([u8; 32], [u8; cipher_len]) {
         let m = rng.random();
         self.encaps_internal_::<du, dv>(&m)

@@ -2,6 +2,7 @@ use core::ffi::c_void;
 use alloc::boxed::Box;
 
 use crate::mlkem::internal::{self, keygen_internal_};
+
 use rand::{CryptoRng, Rng};
 
 pub(crate) const k: usize = 3;
@@ -17,6 +18,7 @@ pub(crate) const cipher_len: usize = crate::cipher_len!(k, du, dv);
 pub type EncapKey = internal::EncapKey<k, eta1, eta2>;
 pub type DecapKey = internal::DecapKey<k, eta1, eta2>;
 
+
 pub fn keygen(rng: &mut dyn CryptoRng) -> DecapKey {
     let d = rng.random();
     let z = rng.random();
@@ -24,6 +26,7 @@ pub fn keygen(rng: &mut dyn CryptoRng) -> DecapKey {
 }
 
 impl EncapKey {
+    
     pub fn encaps(&self, rng: &mut dyn CryptoRng) -> ([u8; 32], [u8; cipher_len]) {
         let m = rng.random();
         self.encaps_internal_::<du, dv>(&m)

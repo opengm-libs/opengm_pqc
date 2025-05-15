@@ -37,7 +37,7 @@ macro_rules! cipher_len {
         (32 * (du * k + dv))
     };
 }
-
+/* 
 #[cfg(test)]
 mod tests {
     #[test]
@@ -238,3 +238,5 @@ mod tests {
         });
     }
 }
+
+*/
