@@ -74,11 +74,10 @@ pub(crate) fn mods_q(b: i32) -> i32 {
 #[cfg(test)]
 mod tests {
 
-    use crate::{
-        mldsa::{Q, reduce::reduce_i32},
-        tick::tick_counter,
-    };
 
+    use crate::mldsa::{Q, reduce::reduce_i32};
+    #[cfg(target_arch = "aarch64")]
+    use crate::tick::tick_counter;
 
     #[test]
     fn test_reduce_i32() {

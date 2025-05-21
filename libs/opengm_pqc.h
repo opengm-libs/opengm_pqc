@@ -158,6 +158,17 @@ void mldsa87_drop_private_key_handle(void *sk_handle);
 
 void mldsa87_drop_public_key_handle(void *pk_handle);
 
+/**
+ * xi: point to bytes array of length 32
+ * r: point to bytes array of length 64
+ * to_server: point to bytes array of length 512 * k, send this to server.
+ */
+void *mldsa65_tpc_client_keygen0_internal(const uint8_t *xi, const uint8_t *r, uint8_t *to_server);
+
+void *mldsa65_tpc_client_keygen1_internal(const void *ctx, const uint8_t *from_server);
+
+void *mldsa65_tpc_server_keygen_internal(const uint8_t *xi, const uint8_t *r, const uint8_t *from_client, uint8_t *to_client);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

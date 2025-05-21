@@ -36,7 +36,7 @@ func TestMldsa65(t *testing.T) {
 }
 
 func TestMldsa87(t *testing.T) {
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 1000000; i++ {
 		sk, _ := Mldsa87KeyGen(rand.Reader)
 		pk := sk.PublicKey()
 		m := make([]byte, 32)

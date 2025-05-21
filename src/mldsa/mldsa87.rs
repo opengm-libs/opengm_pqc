@@ -200,7 +200,7 @@ mod tests {
     #[test]
     fn test_sign_verify_internal() {
         let mut rng = rand::rng();
-        for _ in 0..1000 {
+        for _ in 0..100000 {
             let m: [u8; 32] = rng.random();
             let sk = keygen_internal(&rng.random());
             let rnd = rng.random();
