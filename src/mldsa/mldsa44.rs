@@ -1,25 +1,21 @@
-use core::ffi::c_void;
 use alloc::boxed::Box;
+use core::ffi::c_void;
 
-use super::{
-    Q,
-    internal,
-};
+use super::{Q, internal};
 
-pub(crate) const d:usize =       13;
-pub(crate) const tau:usize =     39;
-pub(crate) const lambda:usize =  128;
-pub(crate) const gamma1:usize =  1 << 17;
-pub(crate) const gamma2:usize =  (Q as usize - 1) / 88; //95232
-pub(crate) const k:usize =       4;
-pub(crate) const l:usize =       4;
-pub(crate) const eta:usize =     2;
-pub(crate) const beta:usize =    78;
-pub(crate) const omega:usize =       80;
-pub(crate) const sklen:usize =   2560;
-pub(crate) const pklen:usize =   1312;
-pub(crate) const siglen:usize =  2420;
-
+pub(crate) const d: usize = 13;
+pub(crate) const tau: usize = 39;
+pub(crate) const lambda: usize = 128;
+pub(crate) const gamma1: usize = 1 << 17;
+pub(crate) const gamma2: usize = (Q as usize - 1) / 88; //95232
+pub(crate) const k: usize = 4;
+pub(crate) const l: usize = 4;
+pub(crate) const eta: usize = 2;
+pub(crate) const beta: usize = 78;
+pub(crate) const omega: usize = 80;
+pub(crate) const sklen: usize = 2560;
+pub(crate) const pklen: usize = 1312;
+pub(crate) const siglen: usize = 2420;
 
 pub type PublicKey = internal::PublicKey<k, l>;
 pub type PrivateKey = internal::PrivateKey<k, l>;
@@ -98,13 +94,12 @@ pub extern "C" fn mldsa44_generate_key_internal(xi: *const u8) -> *mut c_void {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn mldsa44_public_key(sk_handle:  *mut c_void) -> *mut c_void {
+pub extern "C" fn mldsa44_public_key(sk_handle: *mut c_void) -> *mut c_void {
     let private_key = unsafe { Box::from_raw(sk_handle as *mut PrivateKey) };
     let public_key = Box::leak(Box::new(private_key.public_key())) as *mut _ as *mut c_void;
     Box::leak(private_key);
     public_key
 }
-
 
 #[unsafe(no_mangle)]
 pub extern "C" fn mldsa44_private_key_encode(sk: *mut u8, sk_handle: *mut c_void) {
@@ -141,7 +136,7 @@ pub extern "C" fn mldsa44_import_private_key(sk: *const u8) -> *mut c_void {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn mldsa44_import_public_key(pk: *const u8) -> *mut c_void {
-    let pk= unsafe { core::slice::from_raw_parts(pk, pklen) }.try_into().unwrap();
+    let pk = unsafe { core::slice::from_raw_parts(pk, pklen) }.try_into().unwrap();
     Box::leak(Box::new(PublicKey::pk_decode(&pk))) as *mut _ as *mut c_void
 }
 
@@ -169,12 +164,12 @@ pub extern "C" fn mldsa44_sign_internal(
 
 #[unsafe(no_mangle)]
 pub extern "C" fn mldsa44_verify_internal(sig: *const u8, pk_handle: *mut c_void, m: *const u8, mlen: usize) -> bool {
-     let m = unsafe { core::slice::from_raw_parts(m, mlen)}.try_into().unwrap();
+    let m = unsafe { core::slice::from_raw_parts(m, mlen) }.try_into().unwrap();
     let pk = unsafe { Box::from_raw(pk_handle as *mut PublicKey) };
     let sig = unsafe { core::slice::from_raw_parts(sig, siglen) }.try_into().unwrap();
 
     let sig = Signature::sig_decode(sig);
-    if sig.is_none(){
+    if sig.is_none() {
         return false;
     }
     let ok = pk.verify_internal(m, sig.as_ref().unwrap());
@@ -203,7 +198,7 @@ mod tests {
         for _ in 0..1000 {
             let m: [u8; 32] = rng.random();
             let sk = keygen_internal(&rng.random());
-            let mut b = [0;sklen];
+            let mut b = [0; sklen];
             sk.sk_encode_inplace(&mut b);
             let rnd = rng.random();
             let sig = sk.sign_internal(&m, &rnd);

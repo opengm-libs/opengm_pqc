@@ -31,26 +31,26 @@ impl IndexMut<usize> for Rq {
 
 impl Rq {
     #[inline]
-    pub(crate) fn bytes(&self) -> [u8; 512] {
-        let mut b = [0; 512];
+    pub(crate) fn bytes(&self) -> [u8; 256*4] {
+        let mut b = [0; 256*4];
         self.bytes_inplace(&mut b);
         b
     }
 
     #[inline]
-    pub(crate) fn bytes_inplace(&self, b: &mut [u8; 256 * 2]) {
+    pub(crate) fn bytes_inplace(&self, b: &mut [u8; 256 * 4]) {
         b.copy_from_slice(unsafe { self.coeffs.align_to::<u8>().1 });
     }
 
     #[inline]
-    pub(crate) fn new_from_bytes(b: &[u8; 256 * 2]) -> Self {
+    pub(crate) fn new_from_bytes(b: &[u8; 256 * 4]) -> Self {
         let mut f = Rq::default();
         f.coeffs.copy_from_slice(unsafe { b.align_to::<i32>().1 });
         f
     }
 
     #[inline]
-    pub(crate) fn from_bytes(&mut self, b: &[u8; 256 * 2]) {
+    pub(crate) fn from_bytes(&mut self, b: &[u8; 256 * 4]) {
         self.coeffs.copy_from_slice(unsafe { b.align_to::<i32>().1 });
     }
 

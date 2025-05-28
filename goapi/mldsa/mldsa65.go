@@ -1,6 +1,6 @@
 package mldsa
 
-// #include "../../libs/opengm_pqc.h"
+// #include "../libs/opengm_pqc.h"
 import "C"
 
 import (

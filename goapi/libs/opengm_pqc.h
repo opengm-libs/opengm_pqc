@@ -12,6 +12,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define KeygenClientToServerDataLen (1024 * k)
+
+#define KeygenServerToClientDataLen ((1024 * k) + 64)
+
+#define SignClientToServerDataLen (64 + (1024 * k))
+
+#define SignServerToClientDataLen (1024 * ((2 * k) + l))
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -161,13 +169,39 @@ void mldsa87_drop_public_key_handle(void *pk_handle);
 /**
  * xi: point to bytes array of length 32
  * r: point to bytes array of length 64
- * to_server: point to bytes array of length 512 * k, send this to server.
+ * to_server: point to bytes array of length 1024 * k, send this to server.
  */
 void *mldsa65_tpc_client_keygen0_internal(const uint8_t *xi, const uint8_t *r, uint8_t *to_server);
 
 void *mldsa65_tpc_client_keygen1_internal(const void *ctx, const uint8_t *from_server);
 
+void mldsa65_tpc_client_key_encode(uint8_t *sk_out, uint8_t *pk_out, void *sk_handle);
+
+void mldsa65_tpc_server_key_encode(uint8_t *sk_out, uint8_t *pk_out, void *sk_handle);
+
+void *mldsa65_tpc_client_key_decode(uint8_t *b);
+
+void *mldsa65_tpc_server_key_decode(uint8_t *b);
+
 void *mldsa65_tpc_server_keygen_internal(const uint8_t *xi, const uint8_t *r, const uint8_t *from_client, uint8_t *to_client);
+
+void mldsa65_tpc_drop_client_key_handle(void *handle);
+
+void mldsa65_tpc_drop_server_key_handle(void *handle);
+
+void mldsa65_tpc_drop_client_sign_ctx_handle(void *handle);
+
+void mldsa65_tpc_drop_client_keygen_ctx_handle(void *handle);
+
+void *mldsa65_tpc_import_client_key(const uint8_t *sk);
+
+void *mldsa65_tpc_import_server_key(const uint8_t *sk);
+
+void *mldsa65_tpc_client_sign0_internal(uint8_t *to_server, void *client_key_handle, const uint8_t *client_rnd, const uint8_t *m, uintptr_t mlen);
+
+bool mldsa65_tpc_client_sign1(void *ctx, void *client_key_handle, uint8_t *signature, const uint8_t *from_server);
+
+bool mldsa65_tpc_server_sign_internal(uint8_t *to_client, void *server_key_handle, const uint8_t *server_rnd, const uint8_t *m, uintptr_t mlen, const uint8_t *from_client);
 
 #ifdef __cplusplus
 }  // extern "C"

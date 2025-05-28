@@ -73,6 +73,8 @@ impl<const k: usize, const l: usize> From<ClientKey<k, l>> for PrivateKey<k, l> 
         value.0
     }
 }
+
+
 #[derive(Default)]
 pub struct ServerKey<const k: usize, const l: usize>(pub(crate) PrivateKey<k, l>);
 
@@ -81,6 +83,7 @@ impl<const k: usize, const l: usize> From<PrivateKey<k, l>> for ServerKey<k, l> 
         ServerKey(value)
     }
 }
+
 impl<const k: usize, const l: usize> From<ServerKey<k, l>> for PrivateKey<k, l> {
     fn from(value: ServerKey<k, l>) -> Self {
         value.0
@@ -102,13 +105,13 @@ impl<const k: usize, const l: usize, const eta: usize> ClientKeyGenCtx<k, l, eta
         ClientKeyGenCtx { client_t, client_key }
     }
 
-    pub(crate) fn encode_client_t_(&self, b: &mut [u8; 512 * k]) {
-        for (r, b) in zip(&self.client_t, b.chunks_exact_mut(512)) {
+    pub(crate) fn encode_client_t_(&self, b: &mut [u8; 1024 * k]) {
+        for (r, b) in zip(&self.client_t, b.chunks_exact_mut(1024)) {
             r.bytes_inplace(b.try_into().unwrap());
         }
     }
 
-    pub(crate) fn generate_key_(mut self, server_t: &[Rq; k], server_tr: &[u8; 64]) -> Result<ClientKey<k, l>>
+    pub(crate) fn generate_key_(&mut self, server_t: &[Rq; k], server_tr: &[u8; 64]) -> Result<ClientKey<k, l>>
     where
         [(); eta / 2]:,
         [(); 32 + 320 * k]:,
@@ -133,7 +136,7 @@ impl<const k: usize, const l: usize, const eta: usize> ClientKeyGenCtx<k, l, eta
             }
         }
 
-        Ok(ClientKey(self.client_key))
+        Ok(ClientKey(self.client_key.clone()))
     }
 }
 
@@ -366,6 +369,14 @@ impl<const k: usize, const l: usize> ClientSignCtx<k, l> {
     }
 }
 
+pub(crate) fn mu_w_encode<const k:usize>(out: &mut [u8;64+1024*k], mu: &[u8; 64], w: &[Rq; k]) {
+    out[..64].copy_from_slice(mu);
+
+    for (b, w) in zip(out[64..].chunks_exact_mut(1024), w){
+        w.bytes_inplace(b.try_into().unwrap());
+    }
+}
+
 impl<const k: usize, const l: usize> ServerKey<k, l> {
     // server side is stateless.
     // each time generage a fress server_rnd, by increasing kappa.
@@ -541,7 +552,7 @@ mod tests {
             let mut rng = rand::rng();
             let xi = rng.random();
             let client_r = rng.random();
-            let client_keygen_ctx = ClientKeyGenCtx::<k,l,eta>::new_internal_(&xi, &client_r);
+            let mut client_keygen_ctx = ClientKeyGenCtx::<k,l,eta>::new_internal_(&xi, &client_r);
 
             let server_r = rng.random();
             let (server_key, server_t) = ServerKey::<k, l>::keygen_::<eta>(&xi, &server_r, &client_keygen_ctx.client_t);
@@ -569,7 +580,7 @@ mod tests {
             let mut rng = rand::rng();
             let xi = rng.random();
             let client_r = rng.random();
-            let client_keygen_ctx = ClientKeyGenCtx::<k,l,eta>::new_internal_(&xi, &client_r);
+            let mut client_keygen_ctx = ClientKeyGenCtx::<k,l,eta>::new_internal_(&xi, &client_r);
 
             let server_r = rng.random();
             let (server_key, server_t) = ServerKey::<k, l>::keygen_::<eta>(&xi, &server_r, &client_keygen_ctx.client_t);
