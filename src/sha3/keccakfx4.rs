@@ -152,7 +152,8 @@ const rc: [u64; 24] = [
 
 // keccak_f1600_generic applies the Keccak permutation.
 #[rustfmt::skip]
-#[inline]
+#[cfg_attr(target_arch="aarch64", target_feature(enable = "neon"))]
+#[cfg_attr(target_arch="x86_64", target_feature(enable = "avx2"))]
 pub(crate) fn keccak_f1600_generic_x4(a: &mut [u64; 25],b: &mut [u64; 25],c: &mut [u64; 25],d: &mut [u64; 25] ) {
     let mut i = 0;
     let mut v:[u64x4;25] = [u64x4::default();25];
@@ -250,7 +251,6 @@ mod tests {
     use test::Bencher;
     #[bench]
     fn bench_f1600(b: &mut Bencher) {
-        // test mlkem::ntt::mont19::tests::bench_mont_reduce ... bench:      2,399.55 ns/iter (+/- 556.16)
         let mut rng = rand::rng();
         let mut a0:[u64;25] = rng.random();
         let mut a1:[u64;25] = rng.random();
