@@ -3,6 +3,7 @@ pub use shake::SHAKE;
 
 mod keccakf;
 mod keccakfx4;
+mod keccakfx8;
 mod sponge;
 mod shake;
 
