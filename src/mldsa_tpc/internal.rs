@@ -543,7 +543,7 @@ mod tests {
     use crate::{
         hex_println,
         mldsa::{auxiliary::expand_mask, mldsa65::*, rq::Rq},
-        mldsa_tpc::internal::{check_key, combie_key, expand_error, ClientKey, ClientKeyGenCtx, ClientSignCtx, ServerKey},
+        mldsa_tpc::internal::{check_key, combie_key, expand_error, ClientKeyGenCtx, ClientSignCtx, ServerKey},
     };
 
     #[test]

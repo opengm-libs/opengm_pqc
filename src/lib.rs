@@ -4,6 +4,7 @@
 #![allow(incomplete_features)]
 
 #![feature(
+    portable_simd,
     test,
     bigint_helper_methods,
     generic_const_exprs

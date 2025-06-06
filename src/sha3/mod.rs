@@ -2,6 +2,7 @@ pub use sponge::Digest;
 pub use shake::SHAKE;
 
 mod keccakf;
+mod keccakfx4;
 mod sponge;
 mod shake;
 
