@@ -6,35 +6,15 @@ pub struct SHAKE<const N:usize>{
     d: Digest::<N>
 }
 
-
-impl<const N: usize> Hash<N> for SHAKE<N> {
-    fn reset(&mut self) {
+impl<const N: usize> SHAKE<N> {
+    pub fn reset(&mut self) {
         self.d.reset();
     }
 
-    fn write(&mut self, p: &[u8]) {
+    pub fn write(&mut self, p: &[u8]) {
         self.d.write(p);
     }
 
-    fn sum_into(&self, digest: &mut [u8]) {
-        self.d.sum_into(digest);
-    }
-
-    fn sum(&self) -> [u8; N] {
-        self.d.sum()
-    }
-
-    // BlockSize returns the rate of sponge underlying this hash function.
-    fn block_size(&self) -> usize {
-        self.d.block_size()
-    }
-    // Size returns the output size of the hash function in bytes.
-    fn size(&self) -> usize {
-        self.d.size()
-    }
-}
-
-impl<const N: usize> SHAKE<N> {
     pub fn read(&mut self, buf: &mut [u8]){
         self.d.read(buf);
     }

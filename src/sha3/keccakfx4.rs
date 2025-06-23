@@ -1,9 +1,10 @@
+use core::iter::zip;
 use core::simd::*;
 use core::ops::*;
 
 #[inline]
-pub(crate) fn keccak_f1600_x4(a: &mut [u64; 25],b: &mut [u64; 25],c: &mut [u64; 25],d: &mut [u64; 25] ) {
-    unsafe { keccak_f1600_generic_x4(a,b,c,d) };
+pub fn keccak_f1600_x4(a: &mut [u64; 100]) {
+    unsafe { keccak_f1600_generic_x4(a) };
 }
 
 
@@ -154,13 +155,13 @@ const rc: [u64; 24] = [
 #[rustfmt::skip]
 #[cfg_attr(target_arch="aarch64", target_feature(enable = "neon"))]
 #[cfg_attr(target_arch="x86_64", target_feature(enable = "avx2"))]
-pub(crate) fn keccak_f1600_generic_x4(a: &mut [u64; 25],b: &mut [u64; 25],c: &mut [u64; 25],d: &mut [u64; 25] ) {
+pub(crate) fn keccak_f1600_generic_x4(a: &mut [u64; 25*4]) {
     let mut i = 0;
     let mut v:[u64x4;25] = [u64x4::default();25];
 
     // read to v
-    for i in 0..25{
-        v[i] = Simd::from_array([a[i], b[i], c[i], d[i]]);
+    for (v, a) in zip(&mut v, a.chunks_exact_mut(4)) {
+        *v = Simd::from_slice(a);
     }
 
     while i < 24 {
@@ -204,8 +205,8 @@ pub(crate) fn keccak_f1600_generic_x4(a: &mut [u64; 25],b: &mut [u64; 25],c: &mu
     }
 
     // write back
-    for i in 0..25{
-        [a[i], b[i], c[i], d[i]] = v[i].to_array();
+    for (a,v) in zip(a.chunks_exact_mut(4),&v) {
+        v.copy_to_slice(a);
     }
 }
 
@@ -218,15 +219,19 @@ mod tests {
     #[test]
     fn test_f1600_x4() {
         #[rustfmt::skip] 
-        let mut a = [
+        let a = [
             0xcd25c9aa9c22d1e6, 0x5d2815e979da73fa, 0x1e746c8cfd54a79a, 0xf849ba2f516492d3, 0x7b6ef1e35fffa9bf,
             0xff12997dbf1b6c66, 0xdb498a1113513789, 0x94689cca0c63613a, 0xa084aff53c74f579, 0x42996c6cf5f52f11,
             0x15d8acef879b9c81, 0x44a325fa72215e5f, 0x7bcdb855a6a2ef26, 0x9189e554c243651b, 0x38c6b646d0499345,
             0x5dd24b659828953a, 0x2a36e7979983d093, 0x6b8b06d64b50acb1, 0x0ca1c056f544b689, 0xb82360c9f02ccb50,
             0x2c2c187e8f8dbebc, 0x8f6ea3e166241d5f, 0xec2f5316c8e1e7f1, 0x04238fa15328bd6c, 0x540846b170a6caab];
-        let mut b = a.clone();
-        let mut c = a.clone();
-        let mut d = a.clone();
+        let mut b = [0u64;100];
+        for i in 0..25{
+            b[4*i + 0] = a[i];
+            b[4*i + 1] = a[i];
+            b[4*i + 2] = a[i];
+            b[4*i + 3] = a[i];
+        }
 
 
         #[rustfmt::skip] 
@@ -237,12 +242,14 @@ mod tests {
             0xb632d3bc4aba1f1f, 0x570cb1205d6ece1f, 0x4dfcbbb8e1365098, 0x0ac0bc60706647ff, 0x448ad600736fe26d,
             0x54dad331bd86439e, 0xd0adec8d1e445830, 0xa5ec13798e8ebefc, 0xdabe5557d7a810d6, 0x0bf35b673accb38b];
 
-        unsafe { keccak_f1600_generic_x4(&mut a, &mut b, &mut c, &mut d) };
+        unsafe { keccak_f1600_generic_x4(&mut b) };
 
-        assert_eq!(a, expect);
-        assert_eq!(b, expect);
-        assert_eq!(c, expect);
-        assert_eq!(d, expect);
+        for i in 0..25{
+           assert_eq!(b[4*i + 0], expect[i]);
+           assert_eq!(b[4*i + 1], expect[i]);
+           assert_eq!(b[4*i + 2], expect[i]);
+           assert_eq!(b[4*i + 3], expect[i]);
+        }
     }
 
     use rand::prelude::*;
@@ -252,13 +259,10 @@ mod tests {
     #[bench]
     fn bench_f1600(b: &mut Bencher) {
         let mut rng = rand::rng();
-        let mut a0:[u64;25] = rng.random();
-        let mut a1:[u64;25] = rng.random();
-        let mut a2:[u64;25] = rng.random();
-        let mut a3:[u64;25] = rng.random();
+        let mut a:[u64;100] = rng.random();
         b.iter(|| {
             test::black_box({
-                unsafe { keccak_f1600_generic_x4(&mut a0, &mut a1, &mut a2, &mut a3) };
+                unsafe { keccak_f1600_generic_x4(&mut a) };
             });
         });
     }

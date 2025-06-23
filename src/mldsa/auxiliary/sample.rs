@@ -1,4 +1,4 @@
-use crate::{mldsa::{hash::new_h, rq::Rq, util::get_bits, Q}, sha3::{self, XOF}};
+use crate::{mldsa::{hash::new_h, rq::Rq, util::get_bits, Q}, sha3::{self, SHAKE, XOF}};
 
 
 // sample a poly with coefficients in {0,1,p-1} an Hamming weight tau <= 64
@@ -38,9 +38,11 @@ pub(crate) fn coeff_from_three_bytes(b0: u8, b1: u8, b2: u8) -> (i32, usize) {
 
 // input: rho in B^32
 // output: a^ in Tq
-pub(crate) fn rej_ntt_poly(a: &mut Rq, rho: &[u8], k: u8, l: u8) {
-    let mut ctx = sha3::new_shake128();
-    ctx.absorb(rho).absorb(&[k, l]);
+pub(crate) fn rej_ntt_poly(a: &mut Rq, ctx: &mut SHAKE<16>, k: u8, l: u8) {
+    // the rate for shake128 is 200 - 2*16 = 168
+    // let mut ctx = sha3::new_shake128();
+    // ctx.absorb(rho).absorb(&[k, l]);
+    ctx.absorb(&[k, l]);
 
     let mut s = [0; 3 * 8];
     let mut j = 0;
@@ -50,6 +52,7 @@ pub(crate) fn rej_ntt_poly(a: &mut Rq, rho: &[u8], k: u8, l: u8) {
             let (c, res) = coeff_from_three_bytes(s[0], s[1], s[2]);
             a.coeffs[j] = c;
             j = j + res
+            // j < 256, no check
         }
     }
 

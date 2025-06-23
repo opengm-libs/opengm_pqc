@@ -13,3 +13,4 @@ pub(crate) mod internal;
 pub(crate) mod reduce;
 pub(crate) mod rq;
 pub(crate) mod util;
+pub(crate) mod shake4;

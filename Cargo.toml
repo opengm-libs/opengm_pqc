@@ -19,7 +19,7 @@ hex-literal = "1.0.0"
 cbindgen = { version = "0.29"}
 
 [features]
-default = ["mlkem", "mldsa"]
+default = ["std", "mlkem", "mldsa"]
 std = []
 mlkem = ["mlkem512", "mlkem768", "mlkem1024"]
 mlkem512 = []

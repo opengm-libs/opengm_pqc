@@ -1,5 +1,8 @@
 pub use sponge::Digest;
 pub use shake::SHAKE;
+pub use keccakf::keccak_f1600;
+pub use keccakfx4::keccak_f1600_x4;
+
 
 mod keccakf;
 mod keccakfx4;
@@ -16,17 +19,25 @@ pub trait XOF {
     fn squeeze(&mut self, z: &mut [u8])-> &mut Self;
 }
 
-pub trait Hash<const DIGEST_SIZE:usize> {
-    fn reset(&mut self);
+pub trait Hash<const DIGEST_SIZE:usize> :Clone {
+    fn reset(&mut self) -> &mut Self;
     
-    fn write(&mut self, data: &[u8]);
+    fn write(&mut self, data: &[u8]) -> &mut Self;
 
-    fn sum_into(&self, digest: &mut [u8]);
     
-    fn sum(&self)->[u8; DIGEST_SIZE]{
+    fn sum_into_final(self, digest: &mut [u8;DIGEST_SIZE]);
+    fn sum_final(self) -> [u8;DIGEST_SIZE]{
         let mut digest = [0; DIGEST_SIZE];
-        self.sum_into(&mut digest);
+        self.sum_into_final(&mut digest);
         digest
+    }
+    
+    fn sum_into(&self, digest: &mut [u8;DIGEST_SIZE]){
+        self.clone().sum_into_final(digest);
+    }
+
+    fn sum(&self)->[u8; DIGEST_SIZE]{
+        self.clone().sum_final()
     }
 
     fn block_size(&self)-> usize;

@@ -24,16 +24,17 @@ pub struct Digest<const DIGEST_SIZE: usize> {
 }
 
 impl<const DIGEST_SIZE: usize> Hash<DIGEST_SIZE> for Digest<DIGEST_SIZE> {
-    fn reset(&mut self) {
+    fn reset(&mut self) -> &mut Self {
         // Zero the permutation's state.
         for ai in &mut self.a {
             *ai = 0;
         }
         self.state = SpongeDirection::Absorbing;
         self.n = 0;
+        self
     }
 
-    fn write(&mut self, p: &[u8]) {
+    fn write(&mut self, p: &[u8])  -> &mut Self{
         let rate = 200 - 2 * DIGEST_SIZE;
 
         assert_eq!(self.state, SpongeDirection::Absorbing);
@@ -50,18 +51,12 @@ impl<const DIGEST_SIZE: usize> Hash<DIGEST_SIZE> for Digest<DIGEST_SIZE> {
         for (d, s) in zip(&mut self.a[self.n..self.n + p.len()], p) {
             *d ^= *s
         }
-        self.n += p.len()
+        self.n += p.len();
+        self
     }
 
-    fn sum_into(&self, digest: &mut [u8]) {
-        let mut copy = self.clone();
-        copy.read( digest);
-    }
-
-    fn sum(&self) -> [u8; DIGEST_SIZE] {
-        let mut out = [0u8; DIGEST_SIZE];
-        self.sum_into(&mut out);
-        out
+    fn sum_into_final(mut self, digest: &mut [u8;DIGEST_SIZE]) {
+        self.read( digest);
     }
 
     // BlockSize returns the rate of sponge underlying this hash function.
@@ -85,7 +80,7 @@ impl<const DIGEST_SIZE: usize> Digest<DIGEST_SIZE> {
     }
 
 
-    pub(crate) fn read(&mut self, out: &mut [u8]) {
+    pub(crate) fn read(&mut self, out: &mut [u8])-> &mut Self {
         let rate = 200 - 2 * DIGEST_SIZE;
 
         if self.state == SpongeDirection::Absorbing {
@@ -102,6 +97,7 @@ impl<const DIGEST_SIZE: usize> Digest<DIGEST_SIZE> {
             self.n += copy_len;
             out = &mut out[copy_len..];
         }
+        self
     }
 
 

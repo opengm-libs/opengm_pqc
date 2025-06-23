@@ -1,6 +1,6 @@
 
 #[inline]
-pub(crate) fn keccak_f1600(a: &mut [u64; 25]) {
+pub fn keccak_f1600(a: &mut [u64; 25]) {
     keccak_f1600_generic(a);
 }
 
